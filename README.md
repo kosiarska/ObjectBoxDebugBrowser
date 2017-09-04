@@ -21,7 +21,7 @@ Stay tuned for more updates
 ```
 
 Include in your app build.gradle:
-
+```
 repositories {
     maven { url 'https://dl.bintray.com/pracaizlecenia/maven' }
 
@@ -29,6 +29,7 @@ repositories {
 dependencies {
     compile 'pl.michaltretowicz:debug-db:1.0.1'
 }
+```
 
 ### Contributing to Android Debug Database
 Just make pull request. You're in!
