@@ -24,6 +24,7 @@ import android.content.res.AssetManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.amitshekhar.model.Response;
 import com.amitshekhar.model.RowDataRequest;
@@ -43,10 +44,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+
+import io.objectbox.Box;
+import io.objectbox.BoxStore;
 
 /**
  * Created by amitshekhar on 06/02/17.
@@ -95,6 +103,8 @@ public class RequestHandler {
             }
 
             byte[] bytes;
+
+            Log.e("Route", "" + route);
 
             if (route.startsWith("getDbList")) {
                 final String response = getDBListResponse();
@@ -154,6 +164,29 @@ public class RequestHandler {
         }
     }
 
+    public static BoxStore boxStore;
+
+    public void setBoxStore(BoxStore boxStore) {
+        RequestHandler.boxStore = boxStore;
+        List<Class> allEntityClasses = new ArrayList<>(boxStore.getAllEntityClasses());
+        Log.e("App"," allEntityClasses " + allEntityClasses);
+        Box<?> box = boxStore.boxFor(allEntityClasses.get(0));
+
+        Log.e("App"," set box store " + boxStore);
+        Log.e("App"," set box store " + box.count());
+        Log.e("App"," set box store " + Arrays.toString(box.getEntityInfo().getAllProperties()));
+
+
+        for (Object o : box.getAll()) {
+            Field[] fields = o.getClass().getFields();
+            for (Field field : fields) {
+
+                Log.e("App", "fields " +  field.getName());
+            }
+
+        }
+    }
+
     public void setCustomDatabaseFiles(HashMap<String, File> customDatabaseFiles){
         mCustomDatabaseFiles = customDatabaseFiles;
     }
@@ -184,13 +217,14 @@ public class RequestHandler {
             mDatabaseFiles.putAll(mCustomDatabaseFiles);
         }
         Response response = new Response();
-        if (mDatabaseFiles != null) {
-            for (HashMap.Entry<String, File> entry : mDatabaseFiles.entrySet()) {
-                response.rows.add(entry.getKey());
-            }
-        }
-        response.rows.add(Constants.APP_SHARED_PREFERENCES);
-        response.isSuccessful = true;
+//        if (mDatabaseFiles != null) {
+//            for (HashMap.Entry<String, File> entry : mDatabaseFiles.entrySet()) {
+//                response.rows.add(entry.getKey());
+//
+//            }
+            response.rows.add("ObjectBox");
+//        }
+         response.isSuccessful = true;
         return mGson.toJson(response);
     }
 
@@ -202,14 +236,19 @@ public class RequestHandler {
             tableName = route.substring(route.indexOf("=") + 1, route.length());
         }
 
+
+
         TableDataResponse response;
 
-        if (isDbOpened) {
+//        if (isDbOpened) {
+//
+//
+//
             String sql = "SELECT * FROM " + tableName;
             response = DatabaseHelper.getTableData(mDatabase, sql, tableName);
-        } else {
-            response = PrefHelper.getAllPrefData(mContext, tableName);
-        }
+//        } else {
+//            response = PrefHelper.getAllPrefData(mContext, tableName);
+//        }
 
         return mGson.toJson(response);
 
@@ -265,7 +304,11 @@ public class RequestHandler {
             closeDatabase();
             mSelectedDatabase = Constants.APP_SHARED_PREFERENCES;
         } else {
+            try {
             openDatabase(database);
+            }catch (Throwable t) {
+                t.printStackTrace();
+            }
             response = DatabaseHelper.getAllTableName(mDatabase);
             mSelectedDatabase = database;
         }

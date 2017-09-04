@@ -35,6 +35,10 @@ import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.objectbox.BoxStore;
+
+import static com.amitshekhar.server.RequestHandler.boxStore;
+
 public class ClientServer implements Runnable {
 
     private static final String TAG = "ClientServer";
@@ -75,7 +79,11 @@ public class ClientServer implements Runnable {
             mServerSocket = new ServerSocket(mPort);
             while (mIsRunning) {
                 Socket socket = mServerSocket.accept();
-                mRequestHandler.handle(socket);
+                try {
+                    mRequestHandler.handle(socket);
+                }catch (Throwable t) {
+                    t.printStackTrace();
+                }
                 socket.close();
             }
         } catch (SocketException e) {
@@ -84,11 +92,16 @@ public class ClientServer implements Runnable {
             Log.e(TAG, "Web server error.", e);
         } catch (Exception ignore) {
 
+            ignore.printStackTrace();
         }
     }
 
     public void setCustomDatabaseFiles(HashMap<String, File> customDatabaseFiles){
             mRequestHandler.setCustomDatabaseFiles(customDatabaseFiles);
+    }
+
+    public void setBoxStore(BoxStore boxStore) {
+        mRequestHandler.setBoxStore(boxStore);
     }
 
     public boolean isRunning() {

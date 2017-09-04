@@ -29,6 +29,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.objectbox.BoxStore;
+
 /**
  * Created by amitshekhar on 15/11/16.
  */
@@ -78,7 +80,14 @@ public class DebugDB {
             clientServer.setCustomDatabaseFiles(customDatabaseFiles);
         }
     }
-    
+
+    public static void setBoxStore(BoxStore boxStore){
+        System.out.println("set box store " + boxStore + " " + clientServer);
+        if(clientServer!=null){
+            clientServer.setBoxStore(boxStore);
+        }
+    }
+
     public static boolean isServerRunning() {
         return clientServer != null && clientServer.isRunning();
     }

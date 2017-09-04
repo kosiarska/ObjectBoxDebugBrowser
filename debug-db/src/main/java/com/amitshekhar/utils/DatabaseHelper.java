@@ -30,9 +30,20 @@ import com.amitshekhar.model.RowDataRequest;
 import com.amitshekhar.model.TableDataResponse;
 import com.amitshekhar.model.UpdateRowResponse;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+
+import io.objectbox.Box;
+import io.objectbox.Property;
+import io.objectbox.annotation.Id;
+
+import static com.amitshekhar.server.RequestHandler.boxStore;
 
 /**
  * Created by amitshekhar on 06/02/17.
@@ -41,131 +52,218 @@ import java.util.List;
 public class DatabaseHelper {
 
     private DatabaseHelper() {
-        // This class in not publicly instantiable
     }
 
     public static Response getAllTableName(SQLiteDatabase database) {
-        Response response = new Response();
-        Cursor c = database.rawQuery("SELECT name FROM sqlite_master WHERE type='table' OR type='view'", null);
-        if (c.moveToFirst()) {
-            while (!c.isAfterLast()) {
-                response.rows.add(c.getString(0));
-                c.moveToNext();
-            }
-        }
-        c.close();
-        response.isSuccessful = true;
-        try {
-            response.dbVersion = database.getVersion();
-        } catch (Exception ignore) {
 
+
+        Response response = new Response();
+//        response.dbVersion = boxStore.getVersion();
+
+        for (Class aClass : boxStore.getAllEntityClasses()) {
+            response.rows.add(aClass.getSimpleName());
         }
+
+        response.isSuccessful = true;
         return response;
     }
 
     public static TableDataResponse getTableData(SQLiteDatabase db, String selectQuery, String tableName) {
 
+
+        Log.e("App", "gettabledata " + tableName);
+        List<Class> allEntityClasses = new ArrayList<>(boxStore.getAllEntityClasses());
+
+
+        List<String> names = new ArrayList<>();
+        for (Class allEntityClass : allEntityClasses) {
+            names.add(allEntityClass.getSimpleName());
+        }
+
+
+        Log.e("App", " allEntityClasses " + allEntityClasses);
+        Box<Object> box = boxStore.boxFor(allEntityClasses.get(names.indexOf(tableName)));
+
+        //todo timber
+        Log.e("App", " set box store " + boxStore);
+        Log.e("App", " set box store " + box.count());
+        Log.e("App", " set box store " + Arrays.toString(box.getEntityInfo().getAllProperties()));
+
+
         TableDataResponse tableData = new TableDataResponse();
         tableData.isSelectQuery = true;
-        if (tableName == null) {
-            tableName = getTableName(selectQuery);
-        }
+//        tableName =
 
-        final String quotedTableName = getQuotedTableName(tableName);
+        tableData.tableInfos = getTableInfo(db, null, names.indexOf(tableName));
 
-        if (tableName != null) {
-            final String pragmaQuery = "PRAGMA table_info(" + quotedTableName + ")";
-            tableData.tableInfos = getTableInfo(db, pragmaQuery);
-        }
-        Cursor cursor = null;
-        boolean isView = false;
-        try {
-            cursor = db.rawQuery("SELECT type FROM sqlite_master WHERE name=?",
-                    new String[]{quotedTableName});
-            if (cursor.moveToFirst()) {
-                isView = "view".equalsIgnoreCase(cursor.getString(0));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
+        tableData.isEditable = tableData.tableInfos != null;
+
+
+        // setting tableInfo when tableName is not known and making
+        // it non-editable also by making isPrimary true for all
+        if (tableData.tableInfos == null) {
+            tableData.tableInfos = new ArrayList<>();
+
+
+            for (Property property : box.getEntityInfo().getAllProperties()) {
+                TableDataResponse.TableInfo tableInfo = new TableDataResponse.TableInfo();
+                tableInfo.title = property.dbName;
+                tableInfo.isPrimary = true;
+                tableData.tableInfos.add(tableInfo);
             }
         }
-        tableData.isEditable = tableName != null && tableData.tableInfos != null && !isView;
+
+        tableData.isSuccessful = true;
+        tableData.rows = new ArrayList<>();
+
+        for (Object o : box.getAll()) {
+            long id = box.getId(o);
+            Log.e("App", "id " + id);
 
 
-        if (!TextUtils.isEmpty(tableName)) {
-            selectQuery = selectQuery.replace(tableName, quotedTableName);
-        }
+            Log.e("App", "id " + box.get(id).toString());
+            Log.e("App", "id " + box.get(id).getClass().getName());
 
-        try {
-            cursor = db.rawQuery(selectQuery, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            tableData.isSuccessful = false;
-            tableData.errorMessage = e.getMessage();
-            return tableData;
-        }
+            List<TableDataResponse.ColumnData> row = new ArrayList<>();
+            //   Class<?> aClass = Class.forName("com.sample.Note");
+            Field[] fields = box.get(id).getClass().getDeclaredFields();
+//
+//            for (Field field : fields) {
+//                TableDataResponse.ColumnData columnData = new TableDataResponse.ColumnData();
+//                field.setAccessible(true);
+//                for (Annotation annotation : field.getAnnotations()) {
+//                    Log.e("Annotation", "annotation " + annotation.getClass().getName());
+//                    if(annotation.getClass().equals(Id.class)) {
+//                        columnData.dataType = DataType.LONG;
+//                        columnData.value = box.getId(box.get(id));
+//                        row.add(columnData);
+//                        break;
+//                    }
+//                }
+//            }
 
-        if (cursor != null) {
-            cursor.moveToFirst();
+            List<String> propertyNames = new LinkedList<>();
 
-            // setting tableInfo when tableName is not known and making
-            // it non-editable also by making isPrimary true for all
-            if (tableData.tableInfos == null) {
-                tableData.tableInfos = new ArrayList<>();
-                for (int i = 0; i < cursor.getColumnCount(); i++) {
-                    TableDataResponse.TableInfo tableInfo = new TableDataResponse.TableInfo();
-                    tableInfo.title = cursor.getColumnName(i);
-                    tableInfo.isPrimary = true;
-                    tableData.tableInfos.add(tableInfo);
+            for (Property property : box.getEntityInfo().getAllProperties()) {
+                propertyNames.add(property.dbName);
+            }
+
+            List<Field> sortedFields = new LinkedList<>();
+
+            for (String propertyName : propertyNames) {
+                for (Field field : fields) {
+                    if (field.getName().equals(propertyName)) {
+                        sortedFields.add(field);
+                        break;
+                    }
                 }
             }
 
-            tableData.isSuccessful = true;
-            tableData.rows = new ArrayList<>();
-            if (cursor.getCount() > 0) {
+            for (Field field : sortedFields) {
+                TableDataResponse.ColumnData columnData = new TableDataResponse.ColumnData();
 
-                do {
-                    List<TableDataResponse.ColumnData> row = new ArrayList<>();
-                    for (int i = 0; i < cursor.getColumnCount(); i++) {
-                        TableDataResponse.ColumnData columnData = new TableDataResponse.ColumnData();
-                        switch (cursor.getType(i)) {
-                            case Cursor.FIELD_TYPE_BLOB:
-                                columnData.dataType = DataType.TEXT;
-                                columnData.value = ConverterUtils.blobToString(cursor.getBlob(i));
-                                break;
-                            case Cursor.FIELD_TYPE_FLOAT:
-                                columnData.dataType = DataType.REAL;
-                                columnData.value = cursor.getDouble(i);
-                                break;
-                            case Cursor.FIELD_TYPE_INTEGER:
-                                columnData.dataType = DataType.INTEGER;
-                                columnData.value = cursor.getLong(i);
-                                break;
-                            case Cursor.FIELD_TYPE_STRING:
-                                columnData.dataType = DataType.TEXT;
-                                columnData.value = cursor.getString(i);
-                                break;
-                            default:
-                                columnData.dataType = DataType.TEXT;
-                                columnData.value = cursor.getString(i);
-                        }
-                        row.add(columnData);
+                if (field.getName().equals("$change") || field.getName().equals("serialVersionUID")) {
+                    continue;
+                }
+
+                //todo why empty?                                              //todo why empty?
+                Log.e("Field", "type " + field.getType() + " " + Arrays.toString(field.getDeclaredAnnotations()) + " " + Arrays.toString(field.getAnnotations()));
+                field.setAccessible(true);
+
+                //todo check for @Id annotation
+                if ((field.getType().isAssignableFrom(long.class)
+                        || field.getType().isAssignableFrom(long.class))) {
+                    try {
+                        columnData.dataType = DataType.LONG;
+                        columnData.value = box.getId(box.get(id));
+                    } catch (Throwable e) {
+                        e.printStackTrace();
                     }
-                    tableData.rows.add(row);
+                } else if (field.getType().isAssignableFrom(String.class)) {
 
-                } while (cursor.moveToNext());
+                    try {
+                        columnData.dataType = DataType.TEXT;
+                        columnData.value = field.get(box.get(id));
+                        Log.e("App", "String field " + columnData.value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                } else if (field.getType().isAssignableFrom(Date.class)) {
+
+                    try {
+                        columnData.dataType = DataType.TEXT;
+                        columnData.value = field.get(box.get(id)).toString();
+                        Date o1 = (Date) field.get(box.get(id));
+                        Log.e("App", "Date field " + o1);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                } else if (field.getType().isAssignableFrom(float.class) || field.getType().isAssignableFrom(Float.class)) {
+
+                    try {
+                        columnData.dataType = DataType.FLOAT;
+                        columnData.value = field.get(box.get(id));
+                        Date o1 = (Date) field.get(box.get(id));
+                        Log.e("App", "Date field " + o1);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                } else if (field.getType().isAssignableFrom(Double.class) || field.getType().isAssignableFrom(double.class)) {
+
+                    try {
+                        columnData.dataType = DataType.REAL;
+                        columnData.value = field.get(box.get(id));
+                        Date o1 = (Date) field.get(box.get(id));
+                        Log.e("App", "Date field " + o1);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                } else if (field.getType().isAssignableFrom(Boolean.class) || field.getType().isAssignableFrom(boolean.class)) {
+
+                    try {
+                        columnData.dataType = DataType.BOOLEAN;
+                        columnData.value = field.get(box.get(id));
+                        Date o1 = (Date) field.get(box.get(id));
+                        Log.e("App", "Date field " + o1);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                } else if (field.getType().isAssignableFrom(Integer.class) || field.getType().isAssignableFrom(int.class)) {
+
+                    try {
+                        columnData.dataType = DataType.INTEGER;
+                        columnData.value = field.get(box.get(id));
+                        Date o1 = (Date) field.get(box.get(id));
+                        Log.e("App", "Date field " + o1);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+//
+//                else if (field.getType().isAssignableFrom(Integer.class) || field.getType().isAssignableFrom(int.class)) {
+//
+//                    try {
+//                        columnData.dataType = DataType.STRING_SET;
+//                        columnData.value = field.get(box.get(id));
+//                        Date o1 = (Date) field.get(box.get(id));
+//                        Log.e("App", "Date field " + o1);
+//                    } catch (IllegalAccessException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+                Log.e("Column", "column data " + columnData);
+                row.add(columnData);
+
             }
-            cursor.close();
-            return tableData;
-        } else {
-            tableData.isSuccessful = false;
-            tableData.errorMessage = "Cursor is null";
-            return tableData;
+
+
+            Log.e("Rows", "rows: " + tableData.rows);
+            tableData.rows.add(row);
+
+
         }
 
+        return tableData;
     }
 
 
@@ -173,49 +271,26 @@ public class DatabaseHelper {
         return String.format("[%s]", tableName);
     }
 
-    private static List<TableDataResponse.TableInfo> getTableInfo(SQLiteDatabase db, String pragmaQuery) {
+    private static List<TableDataResponse.TableInfo> getTableInfo(SQLiteDatabase db, String pragmaQuery, int index) {
+        List<Class> allEntityClasses = new ArrayList<>(boxStore.getAllEntityClasses());
+        Log.e("App", " allEntityClasses " + allEntityClasses);
+        Box<Object> box = boxStore.boxFor(allEntityClasses.get(index));
 
-        Cursor cursor;
-        try {
-            cursor = db.rawQuery(pragmaQuery, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+        Log.e("App", " set box store " + boxStore);
+        Log.e("App", " set box store " + box.count());
+        Log.e("App", " set box store " + Arrays.toString(box.getEntityInfo().getAllProperties()));
+
+        List<TableDataResponse.TableInfo> tableInfoList = new ArrayList<>();
+
+        for (Property property : box.getEntityInfo().getAllProperties()) {
+            TableDataResponse.TableInfo tableInfo = new TableDataResponse.TableInfo();
+            tableInfo.title = property.dbName;
+            tableInfo.isPrimary = true;
+
+            tableInfoList.add(tableInfo);
         }
 
-        if (cursor != null) {
-
-            List<TableDataResponse.TableInfo> tableInfoList = new ArrayList<>();
-
-            cursor.moveToFirst();
-
-            if (cursor.getCount() > 0) {
-                do {
-                    TableDataResponse.TableInfo tableInfo = new TableDataResponse.TableInfo();
-
-                    for (int i = 0; i < cursor.getColumnCount(); i++) {
-
-                        final String columnName = cursor.getColumnName(i);
-
-                        switch (columnName) {
-                            case Constants.PK:
-                                tableInfo.isPrimary = cursor.getInt(i) == 1;
-                                break;
-                            case Constants.NAME:
-                                tableInfo.title = cursor.getString(i);
-                                break;
-                            default:
-                        }
-
-                    }
-                    tableInfoList.add(tableInfo);
-
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-            return tableInfoList;
-        }
-        return null;
+        return tableInfoList;
     }
 
 

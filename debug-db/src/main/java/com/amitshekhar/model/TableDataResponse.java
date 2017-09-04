@@ -41,6 +41,14 @@ public class TableDataResponse {
     public static class ColumnData {
         public String dataType;
         public Object value;
+
+        @Override
+        public String toString() {
+            return "ColumnData{" +
+                    "dataType='" + dataType + '\'' +
+                    ", value=" + value +
+                    '}';
+        }
     }
 
 }
