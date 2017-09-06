@@ -24,7 +24,7 @@ def siteUrl = 'https://github.com/kosiarska/ObjectBoxDebugBrowser'
 def gitUrl = 'https://github.com/kosiarska/ObjectBoxDebugBrowser.git'
 
 group = "pl.michaltretowicz"
-version = '1.0.3'
+version = '1.0.4'
 
 ext {
 

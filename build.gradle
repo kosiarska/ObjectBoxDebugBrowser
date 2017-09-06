@@ -35,7 +35,7 @@ buildscript {
         siteUrl = 'https://github.com/ptyagicodecamp/webview-overlay'
         gitUrl = 'https://github.com/ptyagicodecamp/webview-overlay.git'
 
-        libraryVersion = '1.0.0'
+        libraryVersion = '1.0.4'
 
         developerId = 'pracaizlecenia'
         developerName = 'Michał Trętowicz'

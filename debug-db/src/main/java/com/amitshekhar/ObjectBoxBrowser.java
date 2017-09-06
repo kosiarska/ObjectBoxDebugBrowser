@@ -39,23 +39,10 @@ public class ObjectBoxBrowser {
         Log.d(TAG, addressLog);
     }
 
-//    public static String getAddressLog() {
-//        Log.d(TAG, addressLog);
-//        return addressLog;
-//    }
-//
-//    public static void shutDown() {
-//        if (clientServer != null) {
-//            clientServer.stop();
-//            clientServer = null;
-//        }
-//    }
-//
-//    public static void setCustomDatabaseFiles(HashMap<String, File> customDatabaseFiles) {
-//        if (clientServer != null) {
-//            clientServer.setCustomDatabaseFiles(customDatabaseFiles);
-//        }
-//    }
+    public static String getAddressLog() {
+        Log.d(TAG, addressLog);
+        return addressLog;
+    }
 
     public static void setBoxStore(BoxStore boxStore) {
         System.out.println("set box store " + boxStore + " " + clientServer);
@@ -64,11 +51,6 @@ public class ObjectBoxBrowser {
         }
     }
 
-    //
-//    public static boolean isServerRunning() {
-//        return clientServer != null && clientServer.isRunning();
-//    }
-//
     public static void showDebugDBAddressLogToast(Context context) {
         if (BuildConfig.DEBUG) {
             try {
