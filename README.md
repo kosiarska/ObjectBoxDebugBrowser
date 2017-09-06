@@ -5,6 +5,12 @@ Based on fantastic library made by Amit Shekhar  https://github.com/amitshekhari
 Stay tuned for more updates
 
 
+### TODO
+- Add working delete, update, add operations 
+- Display more results in single page
+- Auto-refreshing
+- Dark theme
+
 Use `debugCompile` so that it will only compile in your debug build and not in your release build.
 
 That’s all, just start the application, you will see in the logcat an entry like follows :
