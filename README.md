@@ -15,6 +15,35 @@ Use `debugCompile` so that it will only compile in your debug build and not in y
 
 That’s all, just start the application, you will see in the logcat an entry like follows :
 
+### Initialization
+
+public class App extends Application {
+```java
+    private BoxStore boxStore;
+    private static App app;
+
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        boxStore = MyObjectBox.builder().androidContext(this).build();
+        app = this;
+        ObjectBoxBrowser.setBoxStore(boxStore);
+
+
+    }
+
+    public static App get() {
+        return app;
+    }
+
+    public BoxStore boxStore() {
+        return boxStore;
+    }
+
+}
+```
+
 ### Getting address with toast, in case you missed the address log in logcat
 As this library is auto-initialize, if you want to get the address log, add the following method and call (we have to do like this to avoid build error in release build as this library will not be included in the release build)
 ```java
