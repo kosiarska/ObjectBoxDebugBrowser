@@ -24,9 +24,13 @@ def siteUrl = 'https://github.com/kosiarska/ObjectBoxDebugBrowser'
 def gitUrl = 'https://github.com/kosiarska/ObjectBoxDebugBrowser.git'
 
 group = "pl.michaltretowicz"
-version = '1.0.2'
+version = '1.0.3'
 
 ext {
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
     bintrayRepo = 'ObjectBoxDebugBrowser'
     bintrayName = 'ObjectBoxDebugBrowser'
 
@@ -42,8 +46,8 @@ ext {
     libraryVersion = '1.0.0'
 
     developerId = 'pracaizlecenia'
-    developerName = 'Michał Trętowicz'
-    developerEmail = 'pracaizlecenia@gmail.com'
+    developerName = properties.getProperty("bintray.name")
+    developerEmail = properties.getProperty("bintray.email")
 
     licenseName = 'The Apache Software License, Version 2.0'
     licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'

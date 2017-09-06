@@ -51,8 +51,8 @@ dependencies {
 //    })
     compile 'com.android.support:appcompat-v7:25.0.0'
 //    testCompile 'junit:junit:4.12'
-    debugCompile project(':debug-db')
-//    compile 'pl.michaltretowicz:debug-db:1.0.1'
+//    debugCompile project(':debug-db')
+    compile 'pl.michaltretowicz:debug-db:1.0.3'
 
     compile "io.objectbox:objectbox-android:$objectBoxVersion"
     annotationProcessor "io.objectbox:objectbox-processor:$objectBoxVersion"
