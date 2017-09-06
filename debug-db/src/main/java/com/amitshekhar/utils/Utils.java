@@ -81,36 +81,4 @@ public class Utils {
             }
         }
     }
-
-    public static byte[] getDatabase(String selectedDatabase, HashMap<String, File> databaseFiles) {
-        if (TextUtils.isEmpty(selectedDatabase)) {
-            return null;
-        }
-
-        byte[] byteArray = new byte[0];
-        try {
-            File file = databaseFiles.get(selectedDatabase);
-
-            byteArray = null;
-            try {
-                InputStream inputStream = new FileInputStream(file);
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                byte[] b = new byte[(int) file.length()];
-                int bytesRead;
-
-                while ((bytesRead = inputStream.read(b)) != -1) {
-                    bos.write(b, 0, bytesRead);
-                }
-
-                byteArray = bos.toByteArray();
-            } catch (IOException e) {
-                Log.e(TAG, "getDatabase: ", e);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return byteArray;
-    }
-
 }

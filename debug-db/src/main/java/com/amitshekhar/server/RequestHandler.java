@@ -30,9 +30,7 @@ import com.amitshekhar.model.Response;
 import com.amitshekhar.model.RowDataRequest;
 import com.amitshekhar.model.TableDataResponse;
 import com.amitshekhar.model.UpdateRowResponse;
-import com.amitshekhar.utils.Constants;
 import com.amitshekhar.utils.DatabaseHelper;
-import com.amitshekhar.utils.PrefHelper;
 import com.amitshekhar.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -60,17 +58,11 @@ import io.objectbox.BoxStore;
 
 public class RequestHandler {
 
-    private final Context mContext;
     private final Gson mGson;
     private final AssetManager mAssets;
-    private boolean isDbOpened;
-    private SQLiteDatabase mDatabase;
-    private HashMap<String, File> mDatabaseFiles;
-    private HashMap<String, File> mCustomDatabaseFiles;
     private String mSelectedDatabase = null;
 
     public RequestHandler(Context context) {
-        mContext = context;
         mAssets = context.getResources().getAssets();
         mGson = new GsonBuilder().serializeNulls().create();
     }
@@ -100,7 +92,7 @@ public class RequestHandler {
                 route = "index.html";
             }
 
-            byte[] bytes;
+            byte[] bytes = null;
 
             Log.e("Route", "" + route);
 
@@ -126,7 +118,7 @@ public class RequestHandler {
                 final String response = executeQueryAndGetResponse(route);
                 bytes = response.getBytes();
             } else if (route.startsWith("downloadDb")) {
-                bytes = Utils.getDatabase(mSelectedDatabase, mDatabaseFiles);
+//                bytes = Utils.getDatabase(mSelectedDatabase, mDatabaseFiles);
             } else {
                 bytes = Utils.loadContent(route, mAssets);
             }
@@ -185,35 +177,14 @@ public class RequestHandler {
         }
     }
 
-    public void setCustomDatabaseFiles(HashMap<String, File> customDatabaseFiles) {
-        mCustomDatabaseFiles = customDatabaseFiles;
-    }
 
     private void writeServerError(PrintStream output) {
         output.println("HTTP/1.0 500 Internal Server Error");
         output.flush();
     }
 
-    private void openDatabase(String database) {
-        closeDatabase();
-        File databaseFile = mDatabaseFiles.get(database);
-        mDatabase = SQLiteDatabase.openOrCreateDatabase(databaseFile.getAbsolutePath(), null);
-        isDbOpened = true;
-    }
-
-    private void closeDatabase() {
-        if (mDatabase != null && mDatabase.isOpen()) {
-            mDatabase.close();
-        }
-        mDatabase = null;
-        isDbOpened = false;
-    }
 
     private String getDBListResponse() {
-        mDatabaseFiles = new HashMap<>();
-        if (mCustomDatabaseFiles != null) {
-            mDatabaseFiles.putAll(mCustomDatabaseFiles);
-        }
         Response response = new Response();
         response.rows.add("ObjectBox");
         response.isSuccessful = true;
@@ -230,7 +201,7 @@ public class RequestHandler {
 
         TableDataResponse response;
         String sql = "SELECT * FROM " + tableName;
-        response = DatabaseHelper.getTableData(mDatabase, sql, tableName);
+        response = DatabaseHelper.getTableData(sql, tableName);
 
         return mGson.toJson(response);
 
@@ -253,10 +224,10 @@ public class RequestHandler {
             if (query != null) {
                 first = query.split(" ")[0].toLowerCase();
                 if (first.equals("select") || first.equals("pragma")) {
-                    TableDataResponse response = DatabaseHelper.getTableData(mDatabase, query, null);
+                    TableDataResponse response = DatabaseHelper.getTableData(query, null);
                     data = mGson.toJson(response);
                 } else {
-                    TableDataResponse response = DatabaseHelper.exec(mDatabase, query);
+                    TableDataResponse response = DatabaseHelper.exec(null, query);
                     data = mGson.toJson(response);
                 }
             }
@@ -280,20 +251,8 @@ public class RequestHandler {
         }
 
         Response response;
-
-        if (Constants.APP_SHARED_PREFERENCES.equals(database)) {
-            response = PrefHelper.getAllPrefTableName(mContext);
-            closeDatabase();
-            mSelectedDatabase = Constants.APP_SHARED_PREFERENCES;
-        } else {
-            try {
-                openDatabase(database);
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-            response = DatabaseHelper.getAllTableName(mDatabase);
-            mSelectedDatabase = database;
-        }
+        response = DatabaseHelper.getAllTableName();
+        mSelectedDatabase = database;
         return mGson.toJson(response);
     }
 
@@ -306,11 +265,8 @@ public class RequestHandler {
             String updatedData = uri.getQueryParameter("addData");
             List<RowDataRequest> rowDataRequests = mGson.fromJson(updatedData, new TypeToken<List<RowDataRequest>>() {
             }.getType());
-            if (Constants.APP_SHARED_PREFERENCES.equals(mSelectedDatabase)) {
-                response = PrefHelper.addOrUpdateRow(mContext, tableName, rowDataRequests);
-            } else {
-                response = DatabaseHelper.addRow(mDatabase, tableName, rowDataRequests);
-            }
+
+            response = DatabaseHelper.addRow(null, tableName, rowDataRequests);
             return mGson.toJson(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -328,11 +284,7 @@ public class RequestHandler {
             String updatedData = uri.getQueryParameter("updatedData");
             List<RowDataRequest> rowDataRequests = mGson.fromJson(updatedData, new TypeToken<List<RowDataRequest>>() {
             }.getType());
-            if (Constants.APP_SHARED_PREFERENCES.equals(mSelectedDatabase)) {
-                response = PrefHelper.addOrUpdateRow(mContext, tableName, rowDataRequests);
-            } else {
-                response = DatabaseHelper.updateRow(mDatabase, tableName, rowDataRequests);
-            }
+            response = DatabaseHelper.updateRow(null, tableName, rowDataRequests);
             return mGson.toJson(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -351,11 +303,8 @@ public class RequestHandler {
             String updatedData = uri.getQueryParameter("deleteData");
             List<RowDataRequest> rowDataRequests = mGson.fromJson(updatedData, new TypeToken<List<RowDataRequest>>() {
             }.getType());
-            if (Constants.APP_SHARED_PREFERENCES.equals(mSelectedDatabase)) {
-                response = PrefHelper.deleteRow(mContext, tableName, rowDataRequests);
-            } else {
-                response = DatabaseHelper.deleteRow(mDatabase, tableName, rowDataRequests);
-            }
+
+            response = DatabaseHelper.deleteRow(null, tableName, rowDataRequests);
             return mGson.toJson(response);
         } catch (Exception e) {
             e.printStackTrace();

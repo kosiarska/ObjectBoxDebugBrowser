@@ -48,10 +48,13 @@ import static com.amitshekhar.server.RequestHandler.boxStore;
 
 public class DatabaseHelper {
 
+     static final String NULL = "null";
+
+
     private DatabaseHelper() {
     }
 
-    public static Response getAllTableName(SQLiteDatabase database) {
+    public static Response getAllTableName() {
         Response response = new Response();
         for (Class aClass : boxStore.getAllEntityClasses()) {
             response.rows.add(aClass.getSimpleName());
@@ -61,7 +64,7 @@ public class DatabaseHelper {
         return response;
     }
 
-    public static TableDataResponse getTableData(SQLiteDatabase db, String selectQuery, String tableName) {
+    public static TableDataResponse getTableData(String selectQuery, String tableName) {
 
 
         Log.e("App", "gettabledata " + tableName);
@@ -87,7 +90,7 @@ public class DatabaseHelper {
         tableData.isSelectQuery = true;
 //        tableName =
 
-        tableData.tableInfos = getTableInfo(db, null, names.indexOf(tableName));
+        tableData.tableInfos = getTableInfo(null, names.indexOf(tableName));
 
         tableData.isEditable = tableData.tableInfos != null;
 
@@ -191,7 +194,7 @@ public class DatabaseHelper {
         return String.format("[%s]", tableName);
     }
 
-    private static List<TableDataResponse.TableInfo> getTableInfo(SQLiteDatabase db, String pragmaQuery, int index) {
+    private static List<TableDataResponse.TableInfo> getTableInfo(String pragmaQuery, int index) {
         List<Class> allEntityClasses = new ArrayList<>(boxStore.getAllEntityClasses());
         Log.e("App", " allEntityClasses " + allEntityClasses);
         Box<Object> box = boxStore.boxFor(allEntityClasses.get(index));
@@ -228,7 +231,7 @@ public class DatabaseHelper {
         ContentValues contentValues = new ContentValues();
 
         for (RowDataRequest rowDataRequest : rowDataRequests) {
-            if (Constants.NULL.equals(rowDataRequest.value)) {
+            if (NULL.equals(rowDataRequest.value)) {
                 rowDataRequest.value = null;
             }
 
@@ -273,7 +276,7 @@ public class DatabaseHelper {
         List<String> whereArgsList = new ArrayList<>();
 
         for (RowDataRequest rowDataRequest : rowDataRequests) {
-            if (Constants.NULL.equals(rowDataRequest.value)) {
+            if (NULL.equals(rowDataRequest.value)) {
                 rowDataRequest.value = null;
             }
             if (rowDataRequest.isPrimary) {
@@ -328,7 +331,7 @@ public class DatabaseHelper {
         List<String> whereArgsList = new ArrayList<>();
 
         for (RowDataRequest rowDataRequest : rowDataRequests) {
-            if (Constants.NULL.equals(rowDataRequest.value)) {
+            if (NULL.equals(rowDataRequest.value)) {
                 rowDataRequest.value = null;
             }
             if (rowDataRequest.isPrimary) {
