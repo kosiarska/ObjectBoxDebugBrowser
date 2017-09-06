@@ -40,11 +40,6 @@ dependencies {
 ```
 
 
-You will see something like this :
-
-### Seeing values
-<img src=https://raw.githubusercontent.com/amitshekhariitbhu/Android-Debug-Database/master/assets/debugdb.png >
- 
 ### Working with emulator
 - Android Default Emulator: Run the command in the terminal - `adb forward tcp:8080 tcp:8080` and open http://localhost:8080
 - Genymotion Emulator: Enable bridge from configure virtual device (option available in genymotion)
