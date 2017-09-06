@@ -23,6 +23,7 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 
 import com.amitshekhar.model.Response;
 import com.amitshekhar.model.RowDataRequest;
@@ -40,6 +41,7 @@ import java.util.List;
 import io.objectbox.Box;
 import io.objectbox.BoxStore;
 import io.objectbox.Property;
+import io.objectbox.query.QueryBuilder;
 
 /**
  * Created by amitshekhar on 06/02/17.
@@ -313,7 +315,7 @@ public class DatabaseHelper {
     }
 
 
-    public static UpdateRowResponse deleteRow(SQLiteDatabase db, String tableName,
+    public static UpdateRowResponse deleteRow(BoxStore boxStore, String tableName,
                                               List<RowDataRequest> rowDataRequests) {
 
         UpdateRowResponse updateRowResponse = new UpdateRowResponse();
@@ -323,11 +325,17 @@ public class DatabaseHelper {
             return updateRowResponse;
         }
 
+        String tempTableName = tableName;
+
         tableName = getQuotedTableName(tableName);
 
 
+        //todo refactor
         String whereClause = null;
         List<String> whereArgsList = new ArrayList<>();
+
+        List<Pair<String, Object>> propertyNamesValuePairs = new ArrayList<>();
+        List<Pair<Property, Object>> propertyValuePairs = new ArrayList<>();
 
         for (RowDataRequest rowDataRequest : rowDataRequests) {
             if (NULL.equals(rowDataRequest.value)) {
@@ -339,6 +347,7 @@ public class DatabaseHelper {
                 } else {
                     whereClause = whereClause + "and " + rowDataRequest.title + "=? ";
                 }
+                propertyNamesValuePairs.add(new Pair<String, Object>(rowDataRequest.title, rowDataRequest.value));
                 whereArgsList.add(rowDataRequest.value);
             }
         }
@@ -354,7 +363,43 @@ public class DatabaseHelper {
             whereArgs[i] = whereArgsList.get(i);
         }
 
-        db.delete(tableName, whereClause, whereArgs);
+
+        Class<?> tableClass = null;//todo handle diffrent names of tables dbName vs name
+
+
+        for (Class aClass : boxStore.getAllEntityClasses()) {
+
+            if(aClass.getSimpleName().equals(tempTableName)) {
+                tableClass = aClass;
+                break;
+            }
+        }
+
+
+        if(tableClass != null) {
+            Box<?> box = boxStore.boxFor(tableClass);
+            QueryBuilder<?> query = box.query();
+
+            for (Property property : box.getEntityInfo().getAllProperties()) {
+                for (Pair<String, Object> pair : propertyNamesValuePairs) {
+                    Log.e("Property", "dbName " + property.dbName + " " + pair.first);
+                    if (property.dbName.equals(pair.first)) {
+                        propertyValuePairs.add(new Pair<>(property, pair.second));
+                        break;
+                    }
+                }
+            }
+            query.build().remove();
+        }
+
+
+
+
+
+        Log.e("App", "delete " + tableName + " " + whereClause + " " + Arrays.toString(whereArgs));
+        Log.e("App", "pairs: " + propertyNamesValuePairs);
+        Log.e("App", "pairs: " + propertyValuePairs);
+//        db.delete(tableName, whereClause, whereArgs);
         updateRowResponse.isSuccessful = true;
         return updateRowResponse;
     }

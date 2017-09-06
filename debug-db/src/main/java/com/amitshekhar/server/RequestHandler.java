@@ -304,7 +304,7 @@ public class RequestHandler {
             List<RowDataRequest> rowDataRequests = mGson.fromJson(updatedData, new TypeToken<List<RowDataRequest>>() {
             }.getType());
 
-            response = DatabaseHelper.deleteRow(null, tableName, rowDataRequests);
+            response = DatabaseHelper.deleteRow(boxStore, tableName, rowDataRequests);
             return mGson.toJson(response);
         } catch (Exception e) {
             e.printStackTrace();
