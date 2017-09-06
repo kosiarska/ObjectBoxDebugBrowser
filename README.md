@@ -1,6 +1,6 @@
 Based on fantastic library made by Amit Shekhar  https://github.com/amitshekhariitbhu/Android-Debug-Database
 
-<img src=https://raw.githubusercontent.com/kosiarska/ObjectBoxDebugBrowser/master/assets/image.png >
+<img src=assets/image.png >
 
 Stay tuned for more updates
 
