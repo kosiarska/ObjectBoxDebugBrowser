@@ -41,7 +41,7 @@ repositories {
 
 }
 dependencies {
-    compile 'pl.michaltretowicz:debug-db:1.0.3'
+    compile 'pl.michaltretowicz:debug-db:1.0.4'
 }
 ```
 
