@@ -1,7 +1,10 @@
-Based on fantastic library made by Amit Shekhar  https://github.com/amitshekhariitbhu/Android-Debug-Database
+Based on fantastic library made by Amit Shekhar  
+[https://github.com/amitshekhariitbhu/Android-Debug-Database](https://github.com/amitshekhariitbhu/Android-Debug-Database)
 
-<img src=assets/image.png >
+ 
+![alt text](https://raw.githubusercontent.com/kosiarska/ObjectBoxDebugBrowser/gh-pages/assets/image.png)
 
+ 
 Stay tuned for more updates
 
 
