@@ -58,6 +58,7 @@ import io.objectbox.BoxStore;
 
 public class RequestHandler {
 
+    private BoxStore boxStore;
     private final Gson mGson;
     private final AssetManager mAssets;
     private String mSelectedDatabase = null;
@@ -154,10 +155,9 @@ public class RequestHandler {
         }
     }
 
-    public static BoxStore boxStore;
 
     public void setBoxStore(BoxStore boxStore) {
-        RequestHandler.boxStore = boxStore;
+        this.boxStore = boxStore;
         List<Class> allEntityClasses = new ArrayList<>(boxStore.getAllEntityClasses());
         Log.e("App", " allEntityClasses " + allEntityClasses);
         Box<?> box = boxStore.boxFor(allEntityClasses.get(0));
@@ -201,7 +201,7 @@ public class RequestHandler {
 
         TableDataResponse response;
         String sql = "SELECT * FROM " + tableName;
-        response = DatabaseHelper.getTableData(sql, tableName);
+        response = DatabaseHelper.getTableData(boxStore, tableName);
 
         return mGson.toJson(response);
 
@@ -224,7 +224,7 @@ public class RequestHandler {
             if (query != null) {
                 first = query.split(" ")[0].toLowerCase();
                 if (first.equals("select") || first.equals("pragma")) {
-                    TableDataResponse response = DatabaseHelper.getTableData(query, null);
+                    TableDataResponse response = DatabaseHelper.getTableData(boxStore, null);
                     data = mGson.toJson(response);
                 } else {
                     TableDataResponse response = DatabaseHelper.exec(null, query);
@@ -251,7 +251,7 @@ public class RequestHandler {
         }
 
         Response response;
-        response = DatabaseHelper.getAllTableName();
+        response = DatabaseHelper.getAllTableName(boxStore);
         mSelectedDatabase = database;
         return mGson.toJson(response);
     }

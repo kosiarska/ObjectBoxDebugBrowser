@@ -38,9 +38,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import io.objectbox.Box;
+import io.objectbox.BoxStore;
 import io.objectbox.Property;
-
-import static com.amitshekhar.server.RequestHandler.boxStore;
 
 /**
  * Created by amitshekhar on 06/02/17.
@@ -48,13 +47,13 @@ import static com.amitshekhar.server.RequestHandler.boxStore;
 
 public class DatabaseHelper {
 
-     static final String NULL = "null";
+    static final String NULL = "null";
 
 
     private DatabaseHelper() {
     }
 
-    public static Response getAllTableName() {
+    public static Response getAllTableName(BoxStore boxStore) {
         Response response = new Response();
         for (Class aClass : boxStore.getAllEntityClasses()) {
             response.rows.add(aClass.getSimpleName());
@@ -64,7 +63,7 @@ public class DatabaseHelper {
         return response;
     }
 
-    public static TableDataResponse getTableData(String selectQuery, String tableName) {
+    public static TableDataResponse getTableData(BoxStore boxStore, String tableName) {
 
 
         Log.e("App", "gettabledata " + tableName);
@@ -90,7 +89,7 @@ public class DatabaseHelper {
         tableData.isSelectQuery = true;
 //        tableName =
 
-        tableData.tableInfos = getTableInfo(null, names.indexOf(tableName));
+        tableData.tableInfos = getTableInfo(boxStore, names.indexOf(tableName));
 
         tableData.isEditable = tableData.tableInfos != null;
 
@@ -194,7 +193,7 @@ public class DatabaseHelper {
         return String.format("[%s]", tableName);
     }
 
-    private static List<TableDataResponse.TableInfo> getTableInfo(String pragmaQuery, int index) {
+    private static List<TableDataResponse.TableInfo> getTableInfo(BoxStore boxStore, int index) {
         List<Class> allEntityClasses = new ArrayList<>(boxStore.getAllEntityClasses());
         Log.e("App", " allEntityClasses " + allEntityClasses);
         Box<Object> box = boxStore.boxFor(allEntityClasses.get(index));
