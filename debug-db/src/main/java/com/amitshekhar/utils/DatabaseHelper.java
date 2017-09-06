@@ -31,17 +31,24 @@ import com.amitshekhar.model.TableDataResponse;
 import com.amitshekhar.model.UpdateRowResponse;
 
 import java.lang.reflect.Field;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import io.objectbox.Box;
 import io.objectbox.BoxStore;
 import io.objectbox.Property;
+import io.objectbox.query.Query;
 import io.objectbox.query.QueryBuilder;
+
+import static android.R.attr.start;
+import static android.R.attr.value;
 
 /**
  * Created by amitshekhar on 06/02/17.
@@ -155,7 +162,21 @@ public class DatabaseHelper {
                 } else if (field.getType().isAssignableFrom(String.class)) {
                     assingField(columnData, field, DataType.TEXT, box, id);
                 } else if (field.getType().isAssignableFrom(Date.class)) {
-                    assingField(columnData, field, DataType.TEXT, box, id);
+
+                    try {
+                        Date date = (Date) field.get(box.get(id));
+
+//                    assingField(columnData, field, DataType.TEXT, box, id);
+
+                        columnData.dataType = DataType.TEXT;
+                        columnData.value = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date);
+
+
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+
+
                 } else if (field.getType().isAssignableFrom(Float.class) || field.getType().isAssignableFrom(float.class)) {
                     assingField(columnData, field, DataType.FLOAT, box, id);
                 } else if (field.getType().isAssignableFrom(Double.class) || field.getType().isAssignableFrom(double.class)) {
@@ -236,23 +257,23 @@ public class DatabaseHelper {
                 rowDataRequest.value = null;
             }
 
-            switch (rowDataRequest.dataType) {
-                case DataType.INTEGER:
-                    contentValues.put(rowDataRequest.title, Long.valueOf(rowDataRequest.value));
-                    break;
-                case DataType.REAL:
-                    contentValues.put(rowDataRequest.title, Double.valueOf(rowDataRequest.value));
-                    break;
-                case DataType.TEXT:
-                    contentValues.put(rowDataRequest.title, rowDataRequest.value);
-                    break;
-                default:
-                    contentValues.put(rowDataRequest.title, rowDataRequest.value);
-                    break;
-            }
+//            switch (rowDataRequest.dataType) {
+//                case DataType.INTEGER:
+//                    contentValues.put(rowDataRequest.title, Long.valueOf(rowDataRequest.value));
+//                    break;
+//                case DataType.REAL:
+//                    contentValues.put(rowDataRequest.title, Double.valueOf(rowDataRequest.value));
+//                    break;
+//                case DataType.TEXT:
+//                    contentValues.put(rowDataRequest.title, rowDataRequest.value);
+//                    break;
+//                default:
+//                    contentValues.put(rowDataRequest.title, rowDataRequest.value);
+//                    break;
+//            }
         }
 
-        long result = db.insert(tableName, null, contentValues);
+        long result = 0;// db.insert(tableName, null, contentValues);
         updateRowResponse.isSuccessful = result > 0;
 
         return updateRowResponse;
@@ -276,32 +297,32 @@ public class DatabaseHelper {
         String whereClause = null;
         List<String> whereArgsList = new ArrayList<>();
 
-        for (RowDataRequest rowDataRequest : rowDataRequests) {
-            if (NULL.equals(rowDataRequest.value)) {
-                rowDataRequest.value = null;
-            }
-            if (rowDataRequest.isPrimary) {
-                if (whereClause == null) {
-                    whereClause = rowDataRequest.title + "=? ";
-                } else {
-                    whereClause = whereClause + "and " + rowDataRequest.title + "=? ";
-                }
-                whereArgsList.add(rowDataRequest.value);
-            } else {
-                switch (rowDataRequest.dataType) {
-                    case DataType.INTEGER:
-                        contentValues.put(rowDataRequest.title, Long.valueOf(rowDataRequest.value));
-                        break;
-                    case DataType.REAL:
-                        contentValues.put(rowDataRequest.title, Double.valueOf(rowDataRequest.value));
-                        break;
-                    case DataType.TEXT:
-                        contentValues.put(rowDataRequest.title, rowDataRequest.value);
-                        break;
-                    default:
-                }
-            }
-        }
+//        for (RowDataRequest rowDataRequest : rowDataRequests) {
+//            if (NULL.equals(rowDataRequest.value)) {
+//                rowDataRequest.value = null;
+//            }
+//            if (rowDataRequest.isPrimary) {
+//                if (whereClause == null) {
+//                    whereClause = rowDataRequest.title + "=? ";
+//                } else {
+//                    whereClause = whereClause + "and " + rowDataRequest.title + "=? ";
+//                }
+//                whereArgsList.add(rowDataRequest.value);
+//            } else {
+//                switch (rowDataRequest.dataType) {
+//                    case DataType.INTEGER:
+//                        contentValues.put(rowDataRequest.title, Long.valueOf(rowDataRequest.value));
+//                        break;
+//                    case DataType.REAL:
+//                        contentValues.put(rowDataRequest.title, Double.valueOf(rowDataRequest.value));
+//                        break;
+//                    case DataType.TEXT:
+//                        contentValues.put(rowDataRequest.title, rowDataRequest.value);
+//                        break;
+//                    default:
+//                }
+//            }
+//        }
 
         String[] whereArgs = new String[whereArgsList.size()];
 
@@ -309,7 +330,7 @@ public class DatabaseHelper {
             whereArgs[i] = whereArgsList.get(i);
         }
 
-        db.update(tableName, contentValues, whereClause, whereArgs);
+//        db.update(tableName, contentValues, whereClause, whereArgs);
         updateRowResponse.isSuccessful = true;
         return updateRowResponse;
     }
@@ -332,12 +353,14 @@ public class DatabaseHelper {
 
         //todo refactor
         String whereClause = null;
-        List<String> whereArgsList = new ArrayList<>();
+//        List<String> whereArgsList = new ArrayList<>();
 
-        List<Pair<String, Object>> propertyNamesValuePairs = new ArrayList<>();
-        List<Pair<Property, Object>> propertyValuePairs = new ArrayList<>();
+
+        List<Pair<Property, RowDataRequest>> propertyValuePairs = new ArrayList<>();
 
         for (RowDataRequest rowDataRequest : rowDataRequests) {
+
+            Log.e("App", "rowDataRequest " + rowDataRequest);
             if (NULL.equals(rowDataRequest.value)) {
                 rowDataRequest.value = null;
             }
@@ -347,21 +370,21 @@ public class DatabaseHelper {
                 } else {
                     whereClause = whereClause + "and " + rowDataRequest.title + "=? ";
                 }
-                propertyNamesValuePairs.add(new Pair<String, Object>(rowDataRequest.title, rowDataRequest.value));
-                whereArgsList.add(rowDataRequest.value);
+
+//                whereArgsList.add(rowDataRequest.value);
             }
         }
 
-        if (whereArgsList.size() == 0) {
-            updateRowResponse.isSuccessful = true;
-            return updateRowResponse;
-        }
-
-        String[] whereArgs = new String[whereArgsList.size()];
-
-        for (int i = 0; i < whereArgsList.size(); i++) {
-            whereArgs[i] = whereArgsList.get(i);
-        }
+//        if (whereArgsList.size() == 0) {
+//            updateRowResponse.isSuccessful = true;
+//            return updateRowResponse;
+//        }
+//
+//        String[] whereArgs = new String[whereArgsList.size()];
+//
+//        for (int i = 0; i < whereArgsList.size(); i++) {
+//            whereArgs[i] = whereArgsList.get(i);
+//        }
 
 
         Class<?> tableClass = null;//todo handle diffrent names of tables dbName vs name
@@ -369,35 +392,138 @@ public class DatabaseHelper {
 
         for (Class aClass : boxStore.getAllEntityClasses()) {
 
-            if(aClass.getSimpleName().equals(tempTableName)) {
+            if (aClass.getSimpleName().equals(tempTableName)) {
                 tableClass = aClass;
                 break;
             }
         }
 
 
-        if(tableClass != null) {
+        if (tableClass != null) {
             Box<?> box = boxStore.boxFor(tableClass);
             QueryBuilder<?> query = box.query();
 
             for (Property property : box.getEntityInfo().getAllProperties()) {
-                for (Pair<String, Object> pair : propertyNamesValuePairs) {
-                    Log.e("Property", "dbName " + property.dbName + " " + pair.first);
-                    if (property.dbName.equals(pair.first)) {
-                        propertyValuePairs.add(new Pair<>(property, pair.second));
+                for (RowDataRequest pair : rowDataRequests) {
+                    Log.e("Property", "dbName " + property.dbName + " " + pair.title);
+                    if (property.dbName.equals(pair.title)) {
+                        propertyValuePairs.add(new Pair<>(property, pair));
                         break;
                     }
                 }
             }
-            query.build().remove();
+
+            //todo reflection utils
+
+            boolean started = false;
+            try {
+                for (Pair<Property, RowDataRequest> propertyValuePair : propertyValuePairs) {
+                    //need kotlin here...
+//                propertyValuePair.first.
+//                Log.e("App", "property type " + propertyValuePair.first.customType);
+                    Log.e("App", "pair  " + propertyValuePair.first.type + " value: " + propertyValuePair.second.title + " " + propertyValuePair.second.value);
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(Long.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(long.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(Integer.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(int.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(double.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(Double.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(Float.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(float.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(Date.class));
+                    Log.e("App", "pair  " + propertyValuePair.first.type.isAssignableFrom(String.class));
+
+
+                    if (propertyValuePair.first.type.isAssignableFrom(Date.class)) {
+                        try {
+                            Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).parse(propertyValuePair.second.value.toString());
+
+                            if (!started) {
+                                query.equal(propertyValuePair.first, date);
+                                started = true;
+                            } else {
+                                query.and().equal(propertyValuePair.first, date);
+                            }
+
+                            Log.e("App", "added date  " + date);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else if (propertyValuePair.first.type.isAssignableFrom(Double.class) || propertyValuePair.first.type.isAssignableFrom(double.class)
+                            || propertyValuePair.first.type.isAssignableFrom(Float.class) || propertyValuePair.first.type.isAssignableFrom(float.class)) {
+                        double value = Double.parseDouble(propertyValuePair.second.value.toString());
+
+                        if (!started) {
+                            query.and().between(propertyValuePair.first, value, value);
+                            started = true;
+                        } else {
+                            query.between(propertyValuePair.first, value, value);
+                        }
+                        Log.e("App", "added double  " + value);
+
+                    } else if (propertyValuePair.first.type.isAssignableFrom(Long.class) || propertyValuePair.first.type.isAssignableFrom(long.class)
+                            || propertyValuePair.first.type.isAssignableFrom(Integer.class) || propertyValuePair.first.type.isAssignableFrom(int.class)) {
+                        Log.e("App", "added long  " + propertyValuePair.second.value.toString());
+                        try {
+                            long value = Long.parseLong(propertyValuePair.second.value.toString());
+
+                            if (!started) {
+                                query.equal(propertyValuePair.first, value);
+
+                                started = true;
+                            } else {
+                                query.and().equal(propertyValuePair.first, value);
+
+                            }
+
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                        }
+
+
+                    } else if (propertyValuePair.first.type.isAssignableFrom(Boolean.class) || propertyValuePair.first.type.isAssignableFrom(boolean.class)) {
+                        boolean value = Boolean.parseBoolean(propertyValuePair.second.value.toString());
+
+                        Log.e("App", "added boolean  " + value);
+
+                        if (!started) {
+                            query.equal(propertyValuePair.first, value);
+                            started = true;
+                        } else {
+                            query.and().equal(propertyValuePair.first, value);
+
+                        }
+
+                    } else if (propertyValuePair.first.type.isAssignableFrom(String.class)) {
+                        String value = (propertyValuePair.second.value.toString());
+
+
+                        if (!started) {
+                            query.equal(propertyValuePair.first, value);
+                            started = true;
+                        } else {
+                            query.and().equal(propertyValuePair.first, value);
+
+                        }
+
+                        Log.e("App", "added string  " + value);
+                    }
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+
+
+            Query<?> build = query.build();
+            Log.e("App", "delete count " + query.toString());
+            Log.e("App", "delete count " + build.count());
+            build.remove();
         }
 
 
-
-
-
-        Log.e("App", "delete " + tableName + " " + whereClause + " " + Arrays.toString(whereArgs));
-        Log.e("App", "pairs: " + propertyNamesValuePairs);
+        Log.e("App", "delete " + tableName + " " + whereClause); ///+ " " + Arrays.toString(whereArgs));
+//        Log.e("App", "pairs: " + propertyNamesValuePairs);
         Log.e("App", "pairs: " + propertyValuePairs);
 //        db.delete(tableName, whereClause, whereArgs);
         updateRowResponse.isSuccessful = true;

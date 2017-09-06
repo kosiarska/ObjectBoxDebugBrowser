@@ -28,6 +28,16 @@ public class RowDataRequest {
     public String title;
     public boolean isPrimary;
     public String dataType;
-    public String value;
+    public Object value;
 
+
+    @Override
+    public String toString() {
+        return "RowDataRequest{" +
+                "title='" + title + '\'' +
+                ", isPrimary=" + isPrimary +
+                ", dataType='" + dataType + '\'' +
+                ", value=" + value +
+                '}';
+    }
 }
