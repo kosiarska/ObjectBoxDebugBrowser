@@ -20,7 +20,6 @@
 package com.amitshekhar.utils;
 
 import android.content.ContentValues;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 import android.util.Log;
@@ -30,7 +29,6 @@ import com.amitshekhar.model.RowDataRequest;
 import com.amitshekhar.model.TableDataResponse;
 import com.amitshekhar.model.UpdateRowResponse;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +39,6 @@ import java.util.List;
 
 import io.objectbox.Box;
 import io.objectbox.Property;
-import io.objectbox.annotation.Id;
 
 import static com.amitshekhar.server.RequestHandler.boxStore;
 
@@ -55,11 +52,7 @@ public class DatabaseHelper {
     }
 
     public static Response getAllTableName(SQLiteDatabase database) {
-
-
         Response response = new Response();
-//        response.dbVersion = boxStore.getVersion();
-
         for (Class aClass : boxStore.getAllEntityClasses()) {
             response.rows.add(aClass.getSimpleName());
         }
@@ -125,22 +118,8 @@ public class DatabaseHelper {
             Log.e("App", "id " + box.get(id).getClass().getName());
 
             List<TableDataResponse.ColumnData> row = new ArrayList<>();
-            //   Class<?> aClass = Class.forName("com.sample.Note");
             Field[] fields = box.get(id).getClass().getDeclaredFields();
-//
-//            for (Field field : fields) {
-//                TableDataResponse.ColumnData columnData = new TableDataResponse.ColumnData();
-//                field.setAccessible(true);
-//                for (Annotation annotation : field.getAnnotations()) {
-//                    Log.e("Annotation", "annotation " + annotation.getClass().getName());
-//                    if(annotation.getClass().equals(Id.class)) {
-//                        columnData.dataType = DataType.LONG;
-//                        columnData.value = box.getId(box.get(id));
-//                        row.add(columnData);
-//                        break;
-//                    }
-//                }
-//            }
+
 
             List<String> propertyNames = new LinkedList<>();
 
@@ -165,92 +144,24 @@ public class DatabaseHelper {
                 if (field.getName().equals("$change") || field.getName().equals("serialVersionUID")) {
                     continue;
                 }
-
-                //todo why empty?                                              //todo why empty?
-                Log.e("Field", "type " + field.getType() + " " + Arrays.toString(field.getDeclaredAnnotations()) + " " + Arrays.toString(field.getAnnotations()));
                 field.setAccessible(true);
 
-                //todo check for @Id annotation
-                if ((field.getType().isAssignableFrom(long.class)
-                        || field.getType().isAssignableFrom(long.class))) {
-                    try {
-                        columnData.dataType = DataType.LONG;
-                        columnData.value = box.getId(box.get(id));
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
+                if ((field.getType().isAssignableFrom(Long.class) || field.getType().isAssignableFrom(long.class))) {
+                    assingField(columnData, field, DataType.LONG, box, id);
                 } else if (field.getType().isAssignableFrom(String.class)) {
-
-                    try {
-                        columnData.dataType = DataType.TEXT;
-                        columnData.value = field.get(box.get(id));
-                        Log.e("App", "String field " + columnData.value);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                    assingField(columnData, field, DataType.TEXT, box, id);
                 } else if (field.getType().isAssignableFrom(Date.class)) {
-
-                    try {
-                        columnData.dataType = DataType.TEXT;
-                        columnData.value = field.get(box.get(id)).toString();
-                        Date o1 = (Date) field.get(box.get(id));
-                        Log.e("App", "Date field " + o1);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-                } else if (field.getType().isAssignableFrom(float.class) || field.getType().isAssignableFrom(Float.class)) {
-
-                    try {
-                        columnData.dataType = DataType.FLOAT;
-                        columnData.value = field.get(box.get(id));
-                        Date o1 = (Date) field.get(box.get(id));
-                        Log.e("App", "Date field " + o1);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                    assingField(columnData, field, DataType.TEXT, box, id);
+                } else if (field.getType().isAssignableFrom(Float.class) || field.getType().isAssignableFrom(float.class)) {
+                    assingField(columnData, field, DataType.FLOAT, box, id);
                 } else if (field.getType().isAssignableFrom(Double.class) || field.getType().isAssignableFrom(double.class)) {
-
-                    try {
-                        columnData.dataType = DataType.REAL;
-                        columnData.value = field.get(box.get(id));
-                        Date o1 = (Date) field.get(box.get(id));
-                        Log.e("App", "Date field " + o1);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                    assingField(columnData, field, DataType.REAL, box, id);
                 } else if (field.getType().isAssignableFrom(Boolean.class) || field.getType().isAssignableFrom(boolean.class)) {
-
-                    try {
-                        columnData.dataType = DataType.BOOLEAN;
-                        columnData.value = field.get(box.get(id));
-                        Date o1 = (Date) field.get(box.get(id));
-                        Log.e("App", "Date field " + o1);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                    assingField(columnData, field, DataType.BOOLEAN, box, id);
                 } else if (field.getType().isAssignableFrom(Integer.class) || field.getType().isAssignableFrom(int.class)) {
-
-                    try {
-                        columnData.dataType = DataType.INTEGER;
-                        columnData.value = field.get(box.get(id));
-                        Date o1 = (Date) field.get(box.get(id));
-                        Log.e("App", "Date field " + o1);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                    assingField(columnData, field, DataType.INTEGER, box, id);
                 }
-//
-//                else if (field.getType().isAssignableFrom(Integer.class) || field.getType().isAssignableFrom(int.class)) {
-//
-//                    try {
-//                        columnData.dataType = DataType.STRING_SET;
-//                        columnData.value = field.get(box.get(id));
-//                        Date o1 = (Date) field.get(box.get(id));
-//                        Log.e("App", "Date field " + o1);
-//                    } catch (IllegalAccessException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
+
                 Log.e("Column", "column data " + columnData);
                 row.add(columnData);
 
@@ -264,6 +175,15 @@ public class DatabaseHelper {
         }
 
         return tableData;
+    }
+
+    static void assingField(TableDataResponse.ColumnData columnData, Field field, String type, Box<?> box, long id) {
+        try {
+            columnData.dataType = type;
+            columnData.value = field.get(box.get(id));
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
 

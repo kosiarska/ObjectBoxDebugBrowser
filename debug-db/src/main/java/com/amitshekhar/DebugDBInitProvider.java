@@ -38,7 +38,7 @@ public class DebugDBInitProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        DebugDB.initialize(getContext());
+        ObjectBoxBrowser.initialize(getContext());
         return true;
     }
 

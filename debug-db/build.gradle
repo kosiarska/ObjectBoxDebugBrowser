@@ -19,6 +19,32 @@
 
 apply plugin: 'com.android.library'
 
+ext {
+    bintrayRepo = 'ObjectBoxDebugBrowser'
+    bintrayName = 'ObjectBoxDebugBrowser'
+
+    publishedGroupId = 'pl.michaltretowicz'
+    libraryName = 'ObjectBoxDebugBrowser'
+    artifact = 'ObjectBoxDebugBrowser'
+
+    libraryDescription = 'ObjectBox.io database web browser'
+
+    siteUrl = 'https://github.com/kosiarska/ObjectBoxDebugBrowser'
+    gitUrl = 'https://github.com/kosiarska/ObjectBoxDebugBrowser.git'
+
+    libraryVersion = '1.0.0'
+
+    developerId = 'pracaizlecenia'
+    developerName = 'Michał Trętowicz'
+    developerEmail = 'pracaizlecenia@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+
+
+}
+
 android {
     compileSdkVersion 25
     buildToolsVersion '25.0.0'
@@ -52,4 +78,6 @@ dependencies {
     compile "io.objectbox:objectbox-android:$objectBoxVersion"
 }
 
-//apply from: 'debug-db-upload.gradle'
+apply from: 'debug-db-upload.gradle'
+//apply from: 'installv1.gradle'
+//apply from: 'bintrayv1.gradle'

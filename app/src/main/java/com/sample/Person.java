@@ -14,9 +14,15 @@ public class Person {
 
     String name;
 
-    public Person(long id, String name) {
+    float weight;
+
+    double height;
+
+    public Person(long id, String name, float weight, double height) {
         this.id = id;
         this.name = name;
+        this.weight = weight;
+        this.height = height;
     }
 
     public long getId() {
@@ -33,5 +39,21 @@ public class Person {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public float getWeight() {
+        return weight;
+    }
+
+    public void setWeight(float weight) {
+        this.weight = weight;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
     }
 }

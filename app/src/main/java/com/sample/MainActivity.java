@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         final Box<Note> noteBox = App.get().boxStore().boxFor(Note.class);
         noteBox.put(note);
 
-        Person person = new Person(0, "Some Person " + (new Random().nextInt()));
+        Person person = new Person(0, "Some Person " + (new Random().nextInt()), 50.4f, 180.4d );
         App.get().boxStore().boxFor(Person.class).put(person);
 
 

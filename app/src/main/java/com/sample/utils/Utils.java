@@ -42,7 +42,7 @@ public class Utils {
     public static void showDebugDBAddressLogToast(Context context) {
         if (BuildConfig.DEBUG) {
             try {
-                Class<?> debugDB = Class.forName("com.amitshekhar.DebugDB");
+                Class<?> debugDB = Class.forName("com.amitshekhar.ObjectBoxBrowser");
                 Method getAddressLog = debugDB.getMethod("getAddressLog");
                 Object value = getAddressLog.invoke(null);
                 Toast.makeText(context, (String) value, Toast.LENGTH_LONG).show();
@@ -55,7 +55,7 @@ public class Utils {
     public static void setCustomDatabaseFiles(Context context) {
         if (BuildConfig.DEBUG) {
             try {
-                Class<?> debugDB = Class.forName("com.amitshekhar.DebugDB");
+                Class<?> debugDB = Class.forName("com.amitshekhar.ObjectBoxBrowser");
                 Class[] argTypes = new Class[]{HashMap.class};
                 Method setCustomDatabaseFiles = debugDB.getMethod("setCustomDatabaseFiles", argTypes);
                 HashMap<String, File> customDatabaseFiles = new HashMap<>();

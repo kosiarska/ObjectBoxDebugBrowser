@@ -1,10 +1,8 @@
 package com.sample;
 
 import android.app.Application;
-import android.os.Handler;
-import android.widget.Toast;
 
-import com.amitshekhar.DebugDB;
+import com.amitshekhar.ObjectBoxBrowser;
 
 import io.objectbox.BoxStore;
 
@@ -19,7 +17,7 @@ public class App extends Application {
         super.onCreate();
         boxStore = MyObjectBox.builder().androidContext(this).build();
         app = this;
-        DebugDB.setBoxStore(boxStore);
+        ObjectBoxBrowser.setBoxStore(boxStore);
 
 
     }

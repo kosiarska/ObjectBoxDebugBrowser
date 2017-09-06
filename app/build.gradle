@@ -40,7 +40,10 @@ android {
         }
     }
 }
+repositories {
+    maven { url 'https://dl.bintray.com/pracaizlecenia/maven' }
 
+}
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 //    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -49,6 +52,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.0'
 //    testCompile 'junit:junit:4.12'
     debugCompile project(':debug-db')
+//    compile 'pl.michaltretowicz:debug-db:1.0.1'
+
     compile "io.objectbox:objectbox-android:$objectBoxVersion"
     annotationProcessor "io.objectbox:objectbox-processor:$objectBoxVersion"
 

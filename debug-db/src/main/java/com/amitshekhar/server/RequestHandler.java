@@ -31,7 +31,6 @@ import com.amitshekhar.model.RowDataRequest;
 import com.amitshekhar.model.TableDataResponse;
 import com.amitshekhar.model.UpdateRowResponse;
 import com.amitshekhar.utils.Constants;
-import com.amitshekhar.utils.DatabaseFileProvider;
 import com.amitshekhar.utils.DatabaseHelper;
 import com.amitshekhar.utils.PrefHelper;
 import com.amitshekhar.utils.Utils;
@@ -49,7 +48,6 @@ import java.net.Socket;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -169,25 +167,25 @@ public class RequestHandler {
     public void setBoxStore(BoxStore boxStore) {
         RequestHandler.boxStore = boxStore;
         List<Class> allEntityClasses = new ArrayList<>(boxStore.getAllEntityClasses());
-        Log.e("App"," allEntityClasses " + allEntityClasses);
+        Log.e("App", " allEntityClasses " + allEntityClasses);
         Box<?> box = boxStore.boxFor(allEntityClasses.get(0));
 
-        Log.e("App"," set box store " + boxStore);
-        Log.e("App"," set box store " + box.count());
-        Log.e("App"," set box store " + Arrays.toString(box.getEntityInfo().getAllProperties()));
+        Log.e("App", " set box store " + boxStore);
+        Log.e("App", " set box store " + box.count());
+        Log.e("App", " set box store " + Arrays.toString(box.getEntityInfo().getAllProperties()));
 
 
         for (Object o : box.getAll()) {
             Field[] fields = o.getClass().getFields();
             for (Field field : fields) {
 
-                Log.e("App", "fields " +  field.getName());
+                Log.e("App", "fields " + field.getName());
             }
 
         }
     }
 
-    public void setCustomDatabaseFiles(HashMap<String, File> customDatabaseFiles){
+    public void setCustomDatabaseFiles(HashMap<String, File> customDatabaseFiles) {
         mCustomDatabaseFiles = customDatabaseFiles;
     }
 
@@ -212,19 +210,13 @@ public class RequestHandler {
     }
 
     private String getDBListResponse() {
-        mDatabaseFiles = DatabaseFileProvider.getDatabaseFiles(mContext);
-        if(mCustomDatabaseFiles!=null){
+        mDatabaseFiles = new HashMap<>();
+        if (mCustomDatabaseFiles != null) {
             mDatabaseFiles.putAll(mCustomDatabaseFiles);
         }
         Response response = new Response();
-//        if (mDatabaseFiles != null) {
-//            for (HashMap.Entry<String, File> entry : mDatabaseFiles.entrySet()) {
-//                response.rows.add(entry.getKey());
-//
-//            }
-            response.rows.add("ObjectBox");
-//        }
-         response.isSuccessful = true;
+        response.rows.add("ObjectBox");
+        response.isSuccessful = true;
         return mGson.toJson(response);
     }
 
@@ -236,19 +228,9 @@ public class RequestHandler {
             tableName = route.substring(route.indexOf("=") + 1, route.length());
         }
 
-
-
         TableDataResponse response;
-
-//        if (isDbOpened) {
-//
-//
-//
-            String sql = "SELECT * FROM " + tableName;
-            response = DatabaseHelper.getTableData(mDatabase, sql, tableName);
-//        } else {
-//            response = PrefHelper.getAllPrefData(mContext, tableName);
-//        }
+        String sql = "SELECT * FROM " + tableName;
+        response = DatabaseHelper.getTableData(mDatabase, sql, tableName);
 
         return mGson.toJson(response);
 
@@ -305,8 +287,8 @@ public class RequestHandler {
             mSelectedDatabase = Constants.APP_SHARED_PREFERENCES;
         } else {
             try {
-            openDatabase(database);
-            }catch (Throwable t) {
+                openDatabase(database);
+            } catch (Throwable t) {
                 t.printStackTrace();
             }
             response = DatabaseHelper.getAllTableName(mDatabase);

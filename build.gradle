@@ -20,7 +20,34 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.objectBoxVersion = "1.0.0"
+
+
+    ext {
+        bintrayRepo = 'ObjectBoxDebugBrowser'
+        bintrayName = 'ObjectBoxDebugBrowser'
+
+        publishedGroupId = 'pl.michaltretowicz'
+        libraryName = 'ObjectBoxDebugBrowser'
+        artifact = 'ObjectBoxDebugBrowser'
+
+        libraryDescription = 'ObjectBoxDebugBrowser'
+
+        siteUrl = 'https://github.com/ptyagicodecamp/webview-overlay'
+        gitUrl = 'https://github.com/ptyagicodecamp/webview-overlay.git'
+
+        libraryVersion = '1.0.0'
+
+        developerId = 'pracaizlecenia'
+        developerName = 'Michał Trętowicz'
+        developerEmail = 'pracaizlecenia@gmail.com'
+
+        licenseName = 'The Apache Software License, Version 2.0'
+        licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        allLicenses = ["Apache-2.0"]
+        objectBoxVersion = "1.0.0"
+
+    }
+
     repositories {
         jcenter()
         maven { url "http://objectbox.net/beta-repo/" }
