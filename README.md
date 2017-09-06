@@ -16,9 +16,8 @@ Use `debugCompile` so that it will only compile in your debug build and not in y
 That’s all, just start the application, you will see in the logcat an entry like follows :
 
 ### Initialization
-
-public class App extends Application {
 ```java
+public class App extends Application {
     private BoxStore boxStore;
     private static App app;
 
