@@ -9,9 +9,15 @@ Use `debugCompile` so that it will only compile in your debug build and not in y
 
 That’s all, just start the application, you will see in the logcat an entry like follows :
 
-* D/DebugDB: Open http://XXX.XXX.X.XXX:8080 in your browser
+### Getting address with toast, in case you missed the address log in logcat
+As this library is auto-initialize, if you want to get the address log, add the following method and call (we have to do like this to avoid build error in release build as this library will not be included in the release build)
+```java
+    ObjectBoxBrowser.showDebugDBAddressLogToast(context)
+```
 
-* You can also always get the debug address url from your code by calling the method `DebugDB.getAddressLog();`
+
+* D/DebugDB: Open http://XXX.XXX.X.XXX:8080 in your browser
+ 
 
 Now open the provided link in your browser.
 
@@ -44,11 +50,6 @@ dependencies {
 - Android Default Emulator: Run the command in the terminal - `adb forward tcp:8080 tcp:8080` and open http://localhost:8080
 - Genymotion Emulator: Enable bridge from configure virtual device (option available in genymotion)
 
-### Getting address with toast, in case you missed the address log in logcat
-As this library is auto-initialize, if you want to get the address log, add the following method and call (we have to do like this to avoid build error in release build as this library will not be included in the release build)
-```java
-DebuDB.showDebugDBAddressLogToast(context)
-```
 
 ### License
 ```
